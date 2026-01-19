@@ -28,9 +28,9 @@ export default function ProductCard({ product }) {
     setLoading(false);
     
     if (error) {
-      setMessage('Erè koneksyon. Re-eseye.');
+      setMessage('Erè koneksyon.');
     } else {
-      setMessage('✅ Lòd resevwa! N ap valide l rapid.');
+      setMessage('✅ Lòd resevwa!');
       setNatcashId('');
       setTimeout(() => setIsModalOpen(false), 2500);
     }
@@ -38,14 +38,23 @@ export default function ProductCard({ product }) {
 
   return (
     <>
-      {/* KAT PWODWI A */}
       <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full border border-gray-100">
-        {/* Si ou gen imaj, nou ta mete l la. Pou kounye a yon placeholder koulè */}
-        <div className="h-48 bg-gray-200 flex items-center justify-center relative overflow-hidden">
-             <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-300"></div>
-             <span className="relative text-gray-400 text-4xl font-bold opacity-30">EBOOK</span>
-        </div>
         
+        {/* --- PATI IMAJ LA KÒMANSE LA --- */}
+        {product.image_url ? (
+          <img 
+            src={product.image_url} 
+            alt={product.title} 
+            className="w-full h-64 object-cover" // Mwen mete l pi wo (h-64) pou l parèt pi byen
+          />
+        ) : (
+          <div className="h-64 bg-gray-200 flex items-center justify-center relative overflow-hidden">
+               <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-300"></div>
+               <span className="relative text-gray-400 text-4xl font-bold opacity-30">EBOOK</span>
+          </div>
+        )}
+        {/* --- PATI IMAJ LA FINI LA --- */}
+
         <div className="p-6 flex flex-col flex-grow">
           <h2 className="text-xl font-bold text-gray-900 leading-tight mb-2 line-clamp-2">
             {product.title}
@@ -69,51 +78,30 @@ export default function ProductCard({ product }) {
         </div>
       </div>
 
-      {/* MODAL PEMAN AN (Pop-up) */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-blue-900 bg-opacity-70 backdrop-blur-sm flex justify-center items-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white p-8 rounded-2xl max-w-sm w-full shadow-2xl transform scale-100 transition-all">
+        <div className="fixed inset-0 bg-blue-900 bg-opacity-70 backdrop-blur-sm flex justify-center items-center p-4 z-50">
+          <div className="bg-white p-8 rounded-2xl max-w-sm w-full shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-xl text-gray-800">Peye ak Natcash</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500 text-2xl">&times;</button>
             </div>
             
             <div className="bg-yellow-50 p-4 rounded-xl mb-6 border border-yellow-200">
-              <div className="flex items-center mb-2">
-                 <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded mr-2">ETAP 1</span>
-                 <p className="text-sm text-gray-700">Voye <b>{product.price} HTG</b></p>
-              </div>
-              <div className="flex items-center">
-                 <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded mr-2">ETAP 2</span>
-                 <p className="text-sm text-gray-700">Sou: <b>3333-3333</b></p>
-              </div>
+              <p className="text-sm text-gray-700">1. Voye <b>{product.price} HTG</b> sou <b>3333-3333</b></p>
             </div>
 
             <form onSubmit={handleOrder}>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-2">ID Tranzaksyon an</label>
               <input 
                 type="text" 
                 required
-                className="w-full bg-gray-50 border border-gray-300 p-3 rounded-lg mb-4 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                placeholder="Eg: 123456"
+                className="w-full bg-gray-50 border border-gray-300 p-3 rounded-lg mb-4 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="ID Tranzaksyon"
                 value={natcashId}
                 onChange={(e) => setNatcashId(e.target.value)}
               />
-              
-              {message && (
-                <div className={`p-3 rounded-lg mb-4 text-sm font-bold text-center ${message.includes('Erè') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                  {message}
-                </div>
-              )}
-
-              <button 
-                type="submit" 
-                disabled={loading}
-                className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 shadow-md transition-all active:scale-95 flex justify-center items-center"
-              >
-                {loading ? (
-                   <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                ) : 'Konfime Peman'}
+              {message && <p className="mb-2 text-center text-green-600 font-bold">{message}</p>}
+              <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold">
+                {loading ? '...' : 'Konfime'}
               </button>
             </form>
           </div>
