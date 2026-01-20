@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function DownloadPage() {
   const [searchId, setSearchId] = useState('');
+  const [phone, setPhone] = useState('');
   const [orderData, setOrderData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
@@ -14,105 +15,125 @@ export default function DownloadPage() {
     setMsg('');
     setOrderData(null);
 
-    // 1. Chache lòd la ak ID Natcash la
+    // 1. Chache lòd la nan Supabase
     const { data: order, error } = await supabase
       .from('orders')
       .select('*')
       .eq('natcash_id', searchId)
+      .eq('customer_phone', phone)
       .single();
 
     if (error || !order) {
-      setMsg('❌ Nou pa jwenn okenn lòd ak ID sa a. Verifye si ID a kòrèk.');
+      setMsg('❌ Enfòmasyon pa kòrèk. Verifye ID tranzaksyon an ak nimewo telefòn ou.');
       setLoading(false);
       return;
     }
 
-    // 2. Si lòd la la, men li poko valide pa Admin nan
     if (order.status !== 'completed') {
-      setMsg('⏳ Nou resevwa lòd la! N ap verifye peman an kounye a (sa pran 5 a 15 minit). Tanpri re-eseye yon ti moman ankò.');
+      setMsg('⏳ Peman ou an poko valide. N ap verifye sa nan 5-15 minit. Re-eseye yon ti moman.');
       setLoading(false);
       return;
     }
 
-    // 3. Si lòd la "completed", al chache lyen an nan table products
+    // 2. BLOKAJ STRIK: Tcheke si moun nan te deja telechaje (limit = 1)
+    if (order.download_count >= 1) {
+      setMsg('🛑 Ou deja itilize dwa telechajman ou pou liv sa a. Ou pa ka ouvri paj sa a de fwa. Si w gen yon pwoblèm, kontakte nou sou WhatsApp.');
+      setLoading(false);
+      return;
+    }
+
+    // 3. Si tout bagay bon, nou make l kòm "itilize" (fè +1 kounye a)
+    await supabase
+      .from('orders')
+      .update({ download_count: 1 })
+      .eq('id', order.id);
+
     const { data: product } = await supabase
       .from('products')
       .select('download_link')
       .eq('id', order.product_id)
       .single();
 
-    if (product && product.download_link) {
+    if (product) {
       setOrderData({ ...order, download_link: product.download_link });
     } else {
-      setMsg('⚠️ Lòd la valide, men nou pa jwenn lyen telechajman an. Kontakte nou sou WhatsApp.');
+      setMsg('⚠️ Nou pa jwenn lyen an. Kontakte sipò a.');
     }
     setLoading(false);
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-black">
       <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100">
-        <h1 className="text-3xl font-extrabold mb-2 text-gray-900">Dijital<span className="text-blue-600">Lekti</span>Yanm</h1>
-        <p className="text-gray-500 mb-8 text-sm uppercase tracking-widest font-semibold italic">Rekipere Liv Ou</p>
+        <h1 className="text-2xl font-black mb-2 text-blue-900 italic underline tracking-tighter">DijitalLektiYanm</h1>
+        <p className="text-[10px] text-gray-400 font-bold mb-6 tracking-widest uppercase">Ebook Store</p>
         
-        <form onSubmit={checkOrder} className="mb-6 space-y-4">
-          <div className="text-left">
-            <label className="block text-gray-700 text-sm font-bold mb-2 ml-1">
-              ID Tranzaksyon Natcash:
-            </label>
+        <div className="bg-red-50 p-3 rounded-lg mb-6 border border-red-100">
+           <p className="text-[11px] text-red-600 font-bold leading-tight uppercase">
+             ⚠️ Atansyon: Ou gen dwa ouvri lyen liv la yon sèl fwa.
+           </p>
+        </div>
+
+        <form onSubmit={checkOrder} className="space-y-4 text-left">
+          <div>
+            <label className="text-[10px] font-black text-gray-400 uppercase ml-1">Nimewo Telefòn Ou:</label>
             <input 
               type="text" 
-              className="w-full border-2 border-gray-200 p-4 rounded-xl focus:outline-none focus:border-blue-500 text-black transition-all"
-              placeholder="Eg: 12345678"
+              required
+              className="w-full border-2 border-gray-100 p-4 rounded-xl focus:border-blue-500 outline-none transition-all"
+              placeholder="Eg: 44332211"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-black text-gray-400 uppercase ml-1">ID Tranzaksyon Natcash/Moncash:</label>
+            <input 
+              type="text" 
+              required
+              className="w-full border-2 border-gray-100 p-4 rounded-xl focus:border-blue-500 outline-none transition-all font-mono"
+              placeholder="Kole ID a la a..."
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
-              required
             />
           </div>
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg active:scale-95"
+            className="w-full bg-blue-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-lg active:scale-95"
           >
-            {loading ? 'Ap verifye...' : 'Chache Liv Mwen'}
+            {loading ? 'Ap verifye...' : 'Rekipere Liv Mwen'}
           </button>
         </form>
 
         {msg && (
-          <div className={`p-4 rounded-xl text-sm mb-6 border ${
-            msg.includes('❌') ? 'bg-red-50 border-red-100 text-red-700' : 'bg-yellow-50 border-yellow-100 text-yellow-700'
-          }`}>
+          <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-xl text-xs font-bold border border-red-100 animate-shake">
             {msg}
           </div>
         )}
 
+        {/* TI BWA JÒN KI PARÈT LÈ TOUT BAGAY BON AN */}
         {orderData && (
-          <div className="bg-green-50 border-2 border-green-200 p-6 rounded-2xl animate-bounce-short">
-            <div className="text-3xl mb-2">🎉</div>
-            <h3 className="text-green-800 font-bold text-xl mb-1">Peman Konfime!</h3>
-            <p className="text-gray-600 mb-6 text-sm italic">
-              Ou ka telechaje <b>{orderData.product_name}</b> kounye a.
+          <div className="mt-6 p-6 bg-yellow-50 border-2 border-yellow-400 rounded-2xl shadow-inner text-left animate-in slide-in-from-bottom duration-500">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl animate-bounce">🎁</span>
+              <h3 className="font-black text-yellow-900 uppercase text-sm italic underline">Liv ou a Pare!</h3>
+            </div>
+            
+            <p className="text-[11px] text-yellow-800 leading-tight mb-5 font-bold">
+              TRÈ ENPÒTAN: Depi w klike bouton an, asire w ou SOVE (Save/Download) liv la sou telefòn ou. Ou pap ka ouvri paj sa a ankò!
             </p>
             
             <a 
               href={orderData.download_link} 
               target="_blank"
-              rel="noopener noreferrer" 
-              className="block w-full bg-green-600 text-white px-6 py-4 rounded-xl font-bold shadow-md hover:bg-green-700 transition transform hover:-translate-y-1"
+              rel="noopener noreferrer"
+              className="block w-full bg-blue-700 text-white py-4 rounded-xl font-black text-center shadow-lg hover:bg-blue-800 transition"
             >
-              📥 Telechaje PDF la
+              📥 TELECHAJE LIV LA KOUNYE A
             </a>
-            <p className="text-[10px] text-gray-400 mt-4 uppercase">
-              ID Tranzaksyon: {orderData.natcash_id}
-            </p>
           </div>
         )}
-        
-        <div className="mt-8 pt-6 border-t border-gray-100">
-           <p className="text-xs text-gray-400">
-             Si w gen nenpòt difikilte, kontakte sipò a sou WhatsApp la a dwat.
-           </p>
-        </div>
       </div>
     </div>
   );
