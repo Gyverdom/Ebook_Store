@@ -14,9 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "DijitalLektiYanm | Pi gwo Ebook Store Ayiti",
-  description: "Achte liv ayisyen ak konesans dijital fasilman ak Natcash.",
-};
+  title: 'DijitalLektiYanm | Pi Gwo Libreri Nimerik Ayisyen',
+  description: 'Achte ak telechaje liv, fòmasyon, ak zouti dijital an kreyòl. Peye fasil pa MonCash oswa Natcash.',
+  keywords: ['ebook kreyòl', 'liv ayisyen', 'fòmasyon an liy', 'moncash', 'natcash', 'teknoloji'],
+  openGraph: {
+    title: 'DijitalLektiYanm - Aprann epi Grandi',
+    description: 'Dekouvri pi bon liv dijital pou devlopman pèsonèl ak teknik ou.',
+    url: 'https://ebook-store-lac.vercel.app', // Mete vrè lyen Vercel ou a la
+    siteName: 'DijitalLektiYanm',
+    locale: 'ht_HT',
+    type: 'website',
+  },
+}
 
 export default function RootLayout({
   children,
