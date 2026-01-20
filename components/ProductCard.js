@@ -10,8 +10,8 @@ export default function ProductCard({ product }) {
   const [message, setMessage] = useState('');
 
   // CONFIGURASYON PEMAN OU
-  const NATCASH_AGENT_CODE = "445566"; // <--- METE KÒD AJAN PA W LA
-  const MONCASH_NUMBER = "4433-2211";    // <--- METE NIMEWO MONCASH PA W LA
+  const NATCASH_AGENT_CODE = "324751"; // <--- METE KÒD AJAN PA W LA
+  const MONCASH_NUMBER = "47360092";    // <--- METE NIMEWO MONCASH PA W LA
 
   async function handleOrder(e) {
     e.preventDefault();
