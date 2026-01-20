@@ -57,10 +57,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* 3. FOOTER (Pye paj la) */}
-      <footer className="bg-gray-900 text-gray-400 py-8 text-center mt-20">
-        <p>&copy; 2024 DijitalLektiYanm. Tout dwa rezève.</p>
-      </footer>
     </main>
   );
 }
