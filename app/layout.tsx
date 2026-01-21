@@ -1,6 +1,7 @@
 import './globals.css';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Analytics } from "@vercel/analytics/next"
 
 // Metadata pou Google ak WhatsApp (Sa n te pale a)
 export const metadata = {
@@ -93,7 +94,7 @@ export default function RootLayout({
             </p>
           </div>
         </footer>
-
+        <Analytics/>
       </body>
     </html>
   )
