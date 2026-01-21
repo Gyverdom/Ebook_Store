@@ -80,7 +80,7 @@ export default async function Home() {
           </div>
 
           <p className="mt-6 text-[10px] text-gray-500 font-medium uppercase tracking-widest">
-            Sipòte pa MonCash & Natcash
+            Nouri lespri w nan lang manman w
           </p>
         </div>
       </div>
