@@ -1,56 +1,57 @@
 import { NextResponse } from 'next/server';
 
-// 1. Rekipere kle sekrè yo nan kòfrefò a (Environment Variables)
-// GitHub pa ka wè sa yo, se sèlman sèvè a ki konnen yo.
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 export async function POST(request: Request) {
-  try {
-    // Tcheke si kle yo egziste (pou evite erè si ou bliye mete yo nan .env)
-    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-      console.error("ERREUR: Token Telegram oswa Chat ID manke nan .env.local");
-      return NextResponse.json({ success: false, message: "Missing config" }, { status: 500 });
-    }
+  // 1. TCHEKE KLE YO
+  console.log("--- TÈS NOTIFIKASYON ---");
+  console.log("Token egziste?", !!TELEGRAM_BOT_TOKEN); // L ap di true oswa false
+  console.log("Chat ID egziste?", !!TELEGRAM_CHAT_ID); // L ap di true oswa false
 
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+    console.error("❌ ERÈ: Kle Telegram yo manke nan anviwònman an.");
+    return NextResponse.json({ success: false, message: "Missing config" }, { status: 500 });
+  }
+
+  try {
     const body = await request.json();
     const { productName, price, transactionId, phone } = body;
 
-    // 2. Prepare mesaj la (Ou ka modifye fòma a si w vle)
     const message = `
-🚨 **NOUVO LÒD POU VALIDE!** 🚨
-
-📘 **Liv:** ${productName}
-💵 **Montan:** ${price} HTG
-📱 **Telefòn:** ${phone}
-🆔 **ID Tranzaksyon:** \`${transactionId}\`
-
-_Ale nan Supabase > Orders pou valide l kounye a!_
+🚨 **NOUVO LÒD!** 🚨
+📘 ${productName}
+💰 ${price} HTG
+📱 ${phone}
+🆔 ${transactionId}
     `;
 
-    // 3. Voye mesaj la bay Telegram
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     
+    // 2. VOYE REKÈT LA
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: TELEGRAM_CHAT_ID,
         text: message,
-        parse_mode: 'Markdown', // Sa pèmèt nou mete *Gras* ak _Italik_
+        parse_mode: 'Markdown',
       }),
     });
 
+    // 3. GADE REPONS TELEGRAM NAN
+    const data = await response.json();
+    
     if (!response.ok) {
-        const telegramError = await response.json();
-        console.error('Telegram API Error:', telegramError);
-        return NextResponse.json({ success: false }, { status: 500 });
+        console.error('❌ Telegram refize mesaj la:', data); // <--- GADE LA A
+        return NextResponse.json({ success: false, error: data }, { status: 500 });
     }
 
+    console.log("✅ Mesaj voye avèk siksè!");
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('Erè Jeneral nan Route Telegram:', error);
+    console.error('❌ Gwo Erè:', error);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }
