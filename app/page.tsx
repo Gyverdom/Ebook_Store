@@ -1,13 +1,14 @@
 import { supabase } from '@/lib/supabase';
 import ProductCard from '@/components/ProductCard';
 import OnboardingTour from '@/components/OnboardingTour';
-import Link from 'next/link'; // <--- Nou bezwen sa pou bouton yo
+import Newsletter from '@/components/Newsletter'; // <--- Nouvo pati a (Newsletter)
+import Link from 'next/link';
 
-// Sa asire ke sit la toujou a jou
+// Sa asire ke sit la toujou a jou (pa gen ansyen done nan kach)
 export const revalidate = 0;
 
 export default async function Home() {
-  // 1. Rekipere liv yo
+  // 1. Rekipere liv yo nan Supabase
   const { data: products, error } = await supabase
     .from('products')
     .select('*')
@@ -20,16 +21,16 @@ export default async function Home() {
   return (
     <main className="min-h-screen flex flex-col bg-gray-50">
       
-      {/* 1. GID POU NOUVO VIZITÈ */}
+      {/* --- 1. GID POU NOUVO VIZITÈ (Onboarding) --- */}
       <OnboardingTour />
 
-      {/* 2. HERO SECTION (Nouvo Design "Briye" + Bouton Rekipere) */}
+
+      {/* --- 2. HERO SECTION (Design "Briye" a) --- */}
+      {/* Mwen pa manyen anyen la a. Se menm gwo background nwa/ble a */}
       <div className="relative bg-[#0f172a] text-white py-24 sm:py-32 px-4 overflow-hidden shadow-2xl">
         
-        {/* Background Dekorasyon (Limyè dèyè) */}
-        {/* Yon gwo limyè ble anlè a goch */}
+        {/* Background Dekorasyon (Limyè dèyè yo) */}
         <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-600 opacity-20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
-        {/* Yon gwo limyè mov anba a dwat */}
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-600 opacity-20 rounded-full blur-[100px] translate-x-1/3 translate-y-1/3"></div>
 
         <div className="relative z-10 max-w-5xl mx-auto text-center animate-in slide-in-from-bottom duration-700">
@@ -56,7 +57,7 @@ export default async function Home() {
           {/* --- ZÒN AKSYON (Bouton yo) --- */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
              
-             {/* 1. Bouton pou desann wè liv yo */}
+             {/* Bouton Katalog la */}
              <a 
                href="#katalog" 
                className="group relative px-8 py-4 bg-blue-600 text-white rounded-xl font-bold text-sm uppercase tracking-widest overflow-hidden shadow-[0_0_20px_rgba(37,99,235,0.5)] hover:bg-blue-500 transition-all w-full sm:w-auto"
@@ -67,8 +68,7 @@ export default async function Home() {
                </span>
              </a>
 
-             {/* 2. BOUTON REKIPERE A (Sa w t ap chèche a) */}
-             {/* Li fèt an "Glassmorphism" (vè) pou l distenge l de bouton ble a */}
+             {/* Bouton Rekipere a (Mwen gen yon kòd) */}
              <Link 
                href="/telechaje" 
                className="group flex items-center justify-center gap-3 px-8 py-4 bg-white/10 border-2 border-white/20 text-white rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-white hover:text-blue-900 hover:border-white transition-all w-full sm:w-auto backdrop-blur-sm"
@@ -80,12 +80,13 @@ export default async function Home() {
           </div>
 
           <p className="mt-6 text-[10px] text-gray-500 font-medium uppercase tracking-widest">
-            Nouri lespri w nan lang manman w
+            Sipòte pa MonCash & Natcash
           </p>
         </div>
       </div>
 
-      {/* 3. SEKSYON LIV YO (Katalòg) */}
+
+      {/* --- 3. LIS LIV YO (Katalòg) --- */}
       <div id="katalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-20 pb-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {products && products.length > 0 ? (
@@ -103,6 +104,11 @@ export default async function Home() {
           )}
         </div>
       </div>
+
+
+      {/* --- 4. NEWSLETTER (Seksyon Abònman an) --- */}
+      {/* Sa a se nouvo blòk nwa ki mande email la */}
+      <Newsletter />
 
     </main>
   );
