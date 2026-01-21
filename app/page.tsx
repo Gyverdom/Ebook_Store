@@ -1,58 +1,58 @@
-"use client";
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import ProductCard from '../components/ProductCard';
+import { supabase } from '@/lib/supabase';
+import ProductCard from '@/components/ProductCard';
+import OnboardingTour from '@/components/OnboardingTour';
 
-export default function Home() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+// Sa asire ke sit la toujou a jou (pa gen ansyen done nan kach)
+export const revalidate = 0;
 
-  useEffect(() => {
-    async function fetchProducts() {
-      let { data, error } = await supabase.from('products').select('*');
-      if (data) setProducts(data);
-      setLoading(false);
-    }
-    fetchProducts();
-  }, []);
+export default async function Home() {
+  // 1. Rekipere liv yo nan Supabase
+  const { data: products, error } = await supabase
+    .from('products')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Erè nan chajman liv yo:", error);
+  }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* 1. HERO SECTION (Bannè anlè a) */}
-      <div className="bg-gradient-to-r from-blue-900 to-indigo-800 text-white py-20 px-4 shadow-lg">
-        <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight">
-            Dijital<span className="text-yellow-400">Lekti</span>Yanm
-          </h1>
-          <p className="text-xl md:text-2xl text-blue-100 font-light mb-8">
-            Nouri lespri w ak konesans ki soti nan rasin nou.
-          </p>
-          <div className="flex justify-center gap-4">
-            <a href="/telechaje" className="bg-white text-blue-900 px-6 py-3 rounded-full font-bold shadow hover:bg-yellow-400 transition transform hover:-translate-y-1">
-              📥 Mwen deja peye (Rekipere Liv)
-            </a>
-          </div>
-        </div>
+    <main className="min-h-screen flex flex-col items-center p-4 sm:p-8 pb-20">
+      
+      {/* --- 1. GID POU NOUVO VIZITÈ (Onboarding) --- */}
+      {/* Li pral parèt otomatikman anlè tout bagay si se premye vizit moun nan */}
+      <OnboardingTour />
+
+      {/* --- 2. TÈT PAJ LA (Hero Section) --- */}
+      <div className="text-center max-w-2xl mx-auto mb-12 mt-8 animate-in slide-in-from-top duration-700">
+        <span className="bg-blue-100 text-blue-800 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block shadow-sm">
+          🚀 Bibliyotèk 100% Ayisyen
+        </span>
+        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 mb-6 leading-tight tracking-tight">
+          Konesans Ou, <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+            Nan Pòch Ou.
+          </span>
+        </h1>
+        <p className="text-lg text-gray-500 leading-relaxed font-medium">
+          Telechaje pi bon liv ak fòmasyon pou devlopman ou. 
+          Peye an sekirite avèk <span className="font-bold text-red-600">Natcash</span> oswa <span className="font-bold text-red-600">Moncash</span>.
+        </p>
       </div>
 
-      {/* 2. LIS PWODWI YO */}
-      <div className="max-w-6xl mx-auto p-8 -mt-10">
-        {loading ? (
-          <div className="text-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto"></div>
-            <p className="mt-4 text-gray-500">N ap chache bon yanm yo...</p>
-          </div>
+      {/* --- 3. LIS LIV YO (Grid) --- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
+        {products && products.length > 0 ? (
+          products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.length === 0 ? (
-              <p className="text-center col-span-3 text-gray-400 py-10">
-                Pa gen liv disponib pou kounye a.
-              </p>
-            ) : (
-              products.map((item) => (
-                <ProductCard key={item.id} product={item} />
-              ))
-            )}
+          <div className="col-span-full text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
+            <p className="text-4xl mb-4">📚</p>
+            <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">
+              Pa gen liv disponib pou kounye a.
+            </p>
+            <p className="text-xs text-gray-300 mt-2">Tcheke Supabase ou pou wè si ou ajoute pwodwi.</p>
           </div>
         )}
       </div>
