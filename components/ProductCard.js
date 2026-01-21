@@ -10,8 +10,8 @@ export default function ProductCard({ product }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const NATCASH_AGENT_CODE = "445566"; 
-  const MONCASH_NUMBER = "4433-2211";
+  const NATCASH_AGENT_CODE = "324751"; 
+  const MONCASH_NUMBER = "47360092";
 
   const closeModal = () => {
     setIsModalOpen(false);
