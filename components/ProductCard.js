@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 export default function ProductCard({ product }) {
   // Modal States
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false); // <--- Nouvo pou detay yo
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   // Payment Logic States
   const [paymentMethod, setPaymentMethod] = useState(null);
@@ -14,6 +14,7 @@ export default function ProductCard({ product }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  // --- CHANJE NIMEWO SA YO POU PA W YO ---
   const NATCASH_AGENT_CODE = "324751"; 
   const MONCASH_NUMBER = "47360092";
 
@@ -30,6 +31,7 @@ export default function ProductCard({ product }) {
     setLoading(true);
     setMessage('');
 
+    // 1. Anrejistre Lòd la nan Supabase
     const { error } = await supabase
       .from('orders')
       .insert([
@@ -44,33 +46,59 @@ export default function ProductCard({ product }) {
         },
       ]);
 
-    setLoading(false);
     if (error) {
+      setLoading(false);
       setMessage('❌ Erè koneksyon. Re-eseye.');
-    } else {
-      setMessage('✅ Lòd resevwa! N ap valide sa nan 5-15 minit.');
-      setTimeout(closePaymentModal, 3500);
+      return;
     }
+
+    // 2. VOYE NOTIFIKASYON TELEGRAM (Nouvo Pati a) 🚀
+    // Nou fè l nan yon blòk "try" pou si Telegram gen pwoblèm, sa pa bloke kliyan an
+    try {
+      await fetch('/api/telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: product.title,
+          price: product.price,
+          transactionId: transactionId,
+          phone: phone,
+        }),
+      });
+    } catch (err) {
+      console.error("Notifikasyon Telegram pa ale:", err);
+      // Nou pa montre kliyan an erè sa a, paske lòd li a deja sove nan Supabase
+    }
+
+    // 3. Siksè - Montre mesaj vèt la
+    setLoading(false);
+    setMessage('✅ Lòd resevwa! N ap valide sa nan 5-15 minit.');
+    
+    // Fèmen fenèt la otomatikman apre 3.5 segonn
+    setTimeout(closePaymentModal, 3500);
   }
 
   return (
     <>
-      {/* --- KAT PWODWI A --- */}
+      {/* --- KAT PWODWI A (Grid Item) --- */}
       <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col h-full border border-gray-100 group">
         
-        {/* Imaj la (Klike sou li ouvri detay yo tou) */}
+        {/* Imaj la (Klike sou li ouvri detay yo) */}
         <div className="relative cursor-pointer" onClick={() => setIsDetailsOpen(true)}>
           {product.image_url ? (
             <img src={product.image_url} alt={product.title} className="w-full h-64 object-cover" />
           ) : (
             <div className="h-64 bg-gray-200 flex items-center justify-center text-gray-400 font-bold uppercase tracking-widest">Ebook</div>
           )}
+          
+          {/* Badge "Preview" si liv la gen lyen echantiyon */}
           {product.sample_link && (
             <span className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-1 rounded shadow-sm z-10">
               PREVIEW GRATIS
             </span>
           )}
-          {/* Hover Effect: Yon ti vwal nwa ki di "Klike pou detay" */}
+
+          {/* Hover Effect: "Wè Detay" */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center">
              <span className="opacity-0 group-hover:opacity-100 bg-white/90 px-3 py-1 rounded-full text-xs font-bold text-gray-800 shadow-sm transform translate-y-2 group-hover:translate-y-0 transition">
                👁️ Wè Detay
@@ -92,7 +120,7 @@ export default function ProductCard({ product }) {
              </p>
           )}
 
-          {/* Deskripsyon Kout (Ak bouton "Li plis") */}
+          {/* Deskripsyon Kout */}
           <div className="mb-4 flex-grow">
             <p className="text-gray-500 text-sm italic line-clamp-3">
               {product.description}
@@ -126,7 +154,7 @@ export default function ProductCard({ product }) {
         </div>
       </div>
 
-      {/* --- MODAL DETAY (NOUVO!) --- */}
+      {/* --- MODAL DETAY (Popup pou wè plis enfòmasyon) --- */}
       {isDetailsOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
            <div className="bg-white rounded-3xl w-full max-w-lg p-0 overflow-hidden shadow-2xl animate-in zoom-in duration-200 max-h-[90vh] flex flex-col">
@@ -167,10 +195,12 @@ export default function ProductCard({ product }) {
         </div>
       )}
 
-      {/* --- MODAL PEMAN (Rete menm jan an, jis chanje isModalOpen pou isPaymentOpen) --- */}
+      {/* --- MODAL PEMAN (Fòmilè pou peye) --- */}
       {isPaymentOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center p-4 z-50">
           <div className="bg-white p-6 rounded-3xl max-w-sm w-full shadow-2xl animate-in zoom-in duration-200 relative">
+            
+            {/* Tèt Modal Peman */}
             <div className="flex justify-between items-center mb-6">
               {paymentMethod ? (
                  <button onClick={() => setPaymentMethod(null)} className="text-xs text-blue-600 font-bold hover:underline uppercase">← Chanje Metòd</button>
@@ -180,8 +210,7 @@ export default function ProductCard({ product }) {
               <button onClick={closePaymentModal} className="text-gray-400 hover:text-red-500 text-3xl font-light">&times;</button>
             </div>
 
-            {/* ... (Rès kòd modal peman an rete egzakteman menm jan an, jis kopye pati anndan an nan ansyen fichye a si w vle, ou mèt itilize sa m mete anba a ki konplè) ... */}
-            
+            {/* Chwa Metòd Peman (Si li poko chwazi) */}
             {!paymentMethod && (
               <div className="space-y-4">
                 <p className="text-center text-gray-500 text-xs font-bold uppercase mb-4">Ki sèvis ou vle itilize?</p>
@@ -194,9 +223,8 @@ export default function ProductCard({ product }) {
               </div>
             )}
 
+            {/* Fòmilè Peman (Si li fin chwazi MonCash oswa Natcash) */}
             {(paymentMethod === 'natcash' || paymentMethod === 'moncash') && (
-               /* ... Mete menm lojik fòmilè ak enstriksyon ou te genyen anvan yo isit la ... */
-               /* Mwen poze yon ti rezime pou li pa twò long, men ou ka kopye kole blòk kondisyonèl yo nan ansyen kòd ou a */
                <div className="animate-in slide-in-from-right duration-200">
                   <div className={`p-5 rounded-2xl border text-center mb-6 ${paymentMethod === 'natcash' ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-200'}`}>
                     <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Montan pou voye</p>
@@ -211,10 +239,20 @@ export default function ProductCard({ product }) {
                   </div>
 
                   <form onSubmit={handleOrder} className="space-y-4">
-                    <div><label className="text-[9px] font-black text-gray-400 uppercase ml-1">Nimewo Telefòn Ou</label><input type="text" required className="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl font-bold outline-none" placeholder="Eg: 44332211" value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
-                    <div><label className="text-[9px] font-black text-gray-400 uppercase ml-1">ID Tranzaksyon</label><input type="text" required className="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl font-mono outline-none" placeholder="Kole ID a la a..." value={transactionId} onChange={(e) => setTransactionId(e.target.value)} /></div>
+                    <div>
+                        <label className="text-[9px] font-black text-gray-400 uppercase ml-1">Nimewo Telefòn Ou</label>
+                        <input type="text" required className="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl font-bold outline-none text-black" placeholder="Eg: 44332211" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                    </div>
+                    <div>
+                        <label className="text-[9px] font-black text-gray-400 uppercase ml-1">ID Tranzaksyon</label>
+                        <input type="text" required className="w-full bg-gray-50 border border-gray-100 p-4 rounded-xl font-mono outline-none text-black" placeholder="Kole ID a la a..." value={transactionId} onChange={(e) => setTransactionId(e.target.value)} />
+                    </div>
+                    
                     {message && <div className={`p-3 rounded-xl text-[10px] font-bold text-center italic ${message.includes('❌') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>{message}</div>}
-                    <button type="submit" disabled={loading} className="w-full bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl active:scale-95 transition hover:bg-gray-900">{loading ? 'Ap Anrejistre...' : 'Mwen fin peye'}</button>
+                    
+                    <button type="submit" disabled={loading} className="w-full bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl active:scale-95 transition hover:bg-gray-900">
+                        {loading ? 'Ap Anrejistre...' : 'Mwen fin peye'}
+                    </button>
                   </form>
                </div>
             )}
